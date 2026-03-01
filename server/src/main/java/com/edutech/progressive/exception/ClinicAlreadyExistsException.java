@@ -1,4 +1,12 @@
 package com.edutech.progressive.exception;
+ 
+public class ClinicAlreadyExistsException extends RuntimeException {
 
-public class ClinicAlreadyExistsException {
+    public ClinicAlreadyExistsException(String message) {
+
+        super(message);
+
+    }
+
 }
+ 

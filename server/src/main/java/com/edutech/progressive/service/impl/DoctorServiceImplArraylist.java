@@ -1,71 +1,69 @@
 package com.edutech.progressive.service.impl;
-
+ 
 import com.edutech.progressive.entity.Doctor;
-
+import com.edutech.progressive.service.DoctorService;
+ 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
-
-public class DoctorServiceImplArraylist {
-
+ 
+public class DoctorServiceImplArraylist implements DoctorService {
+ 
     private static final List<Doctor> doctorList = new ArrayList<>();
-    private static int nextId = 1;
-
-   
-    public DoctorServiceImplArraylist() {
-        
-        if (!doctorList.isEmpty()) {
-            doctorList.clear();
-            nextId = 1;
-        }
-    }
-
+ 
     public void emptyArrayList() {
         doctorList.clear();
-        nextId = 1;
     }
-
-    private static int generateId() { return nextId++; }
-
-    public List<Doctor> getAllDoctors() {
+ 
+    @Override
+    public List<Doctor> getAllDoctors() throws Exception {
         return new ArrayList<>(doctorList);
     }
-
-    public Integer addDoctor(Doctor doctor) {
-        if (doctor == null) return -1;
-        if (doctor.getDoctorId() <= 0) {
-            doctor.setDoctorId(generateId());
-        } else {
-            deleteDoctor(doctor.getDoctorId());
-            if (doctor.getDoctorId() >= nextId) nextId = doctor.getDoctorId() + 1;
-        }
+ 
+    @Override
+    public Integer addDoctor(Doctor doctor) throws Exception {
         doctorList.add(doctor);
         return doctor.getDoctorId();
     }
-
-    public Doctor getDoctorById(int doctorId) {
-        for (Doctor d : doctorList) if (d.getDoctorId() == doctorId) return d;
-        return null;
+ 
+    @Override
+    public List<Doctor> getDoctorSortedByExperience() throws Exception {
+        List<Doctor> copy = new ArrayList<>(doctorList);
+        copy.sort(Comparator.comparingInt(d -> {
+            Integer y = d.getYearsOfExperience();
+            return y == null ? 0 : y;
+        }));
+        return copy;
     }
-
-    public void updateDoctor(Doctor doctor) {
-        if (doctor == null || doctor.getDoctorId() <= 0) return;
+ 
+    @Override
+    public void updateDoctor(Doctor doctor) throws Exception {
+        if (doctor == null) return;
         for (int i = 0; i < doctorList.size(); i++) {
             if (doctorList.get(i).getDoctorId() == doctor.getDoctorId()) {
-                doctorList.set(i, doctor);
+                Doctor d = doctorList.get(i);
+                d.setFullName(doctor.getFullName());
+                d.setSpecialty(doctor.getSpecialty());
+                d.setContactNumber(doctor.getContactNumber());
+                d.setEmail(doctor.getEmail());
+                d.setYearsOfExperience(doctor.getYearsOfExperience());
                 return;
             }
         }
     }
-
-    public void deleteDoctor(int doctorId) {
+ 
+    @Override
+    public void deleteDoctor(int doctorId) throws Exception {
         doctorList.removeIf(d -> d.getDoctorId() == doctorId);
     }
-
-    public List<Doctor> getDoctorSortedByExperience() {
-        List<Doctor> copy = new ArrayList<>(doctorList);
-        copy.sort(Comparator.comparingInt(Doctor::getYearsOfExperience));
-        return copy;
+ 
+    @Override
+    public Doctor getDoctorById(int doctorId) throws Exception {
+        for (Doctor d : doctorList) {
+            if (d.getDoctorId() == doctorId) {
+                return d;
+            }
+        }
+        return null;
     }
 }

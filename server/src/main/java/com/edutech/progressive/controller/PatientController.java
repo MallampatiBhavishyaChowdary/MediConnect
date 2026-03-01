@@ -1,151 +1,141 @@
 package com.edutech.progressive.controller;
  
 import com.edutech.progressive.entity.Patient;
-import com.edutech.progressive.service.PatientService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.*;
+
+import com.edutech.progressive.service.impl.PatientServiceImplJpa;
+
+import org.springframework.http.HttpStatus;
+
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
  
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
  
+ 
 @RestController
-@RequestMapping(value = "/patient", produces = MediaType.APPLICATION_JSON_VALUE)
+
+@RequestMapping("/patient")
+
 public class PatientController {
  
-    private final PatientService patientServiceArrayList;
+    private final PatientServiceImplJpa service;
  
-    @SuppressWarnings("unused")
-    private final PatientService patientServiceJpa;
- 
-    public PatientController(
-            @Qualifier("patientServiceImplArrayList") PatientService patientServiceArrayList,
-            @Qualifier("patientServiceImplJpa") PatientService patientServiceJpa) {
-        this.patientServiceArrayList = patientServiceArrayList;
-        this.patientServiceJpa = patientServiceJpa;
+    public PatientController(PatientServiceImplJpa service) {
+
+        this.service = service;
+
     }
  
     @GetMapping
-    public ResponseEntity<?> getAllPatients() {
+
+    public ResponseEntity<List<Patient>> getAllPatients() {
+
         try {
-            List<Patient> patients = patientServiceArrayList.getAllPatients();
-            return ResponseEntity.ok(patients);
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(jsonError(ex.getMessage()));
+
+            return ResponseEntity.ok(service.getAllPatients());
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
         }
+
     }
  
-    @GetMapping("/{patientId}")
-    public ResponseEntity<?> getPatientById(@PathVariable("patientId") int patientId) {
+    @GetMapping("/{patientID}")
+
+    public ResponseEntity<Patient> getPatientById(@PathVariable("patientID") Long patientId) {
+
         try {
-            Patient patient = patientServiceArrayList.getPatientById(patientId);
-            return ResponseEntity.ok(patient);
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(jsonError(ex.getMessage()));
+
+            Patient p = service.getPatientById(patientId.intValue());
+
+            return ResponseEntity.ok(p); 
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
         }
+
     }
  
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> addPatient(@RequestBody Patient patient) {
+    @PostMapping
+
+    public ResponseEntity<Integer> addPatient(@RequestBody Patient patient) {
+
         try {
-            Integer id = patientServiceArrayList.addPatient(patient);
+
+            Integer id = service.addPatient(patient);
+
             return ResponseEntity.ok(id);
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(jsonError(ex.getMessage()));
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
         }
+
     }
  
-    @PutMapping(value = "/{patientId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updatePatient(@PathVariable("patientId") int patientId,
-                                           @RequestBody Patient patient) {
+    @PutMapping("/{patientID}")
+
+    public ResponseEntity<String> updatePatient(@PathVariable("patientID") Long patientId,
+
+                                                @RequestBody Patient patient) {
+
         try {
-            patient.setPatientId(patientId);
-            patientServiceArrayList.updatePatient(patient);
-            return ResponseEntity.ok(jsonMessage("Patient updated successfully"));
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(jsonError(ex.getMessage()));
+
+            patient.setPatientId(patientId.intValue());
+
+            service.updatePatient(patient);
+
+            return ResponseEntity.ok("Patient updated");
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating patient");
+
         }
+
     }
  
-    @DeleteMapping("/{patientId}")
-    public ResponseEntity<?> deletePatient(@PathVariable("patientId") int patientId) {
+   
+
+    @DeleteMapping("/{patientID}")
+
+    public ResponseEntity<String> deletePatient(@PathVariable("patientID") Long patientId) {
+
         try {
-            patientServiceArrayList.deletePatient(patientId);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(jsonMessage("Unauthorized to delete (security pending)"));
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(jsonError(ex.getMessage()));
+
+            service.deletePatient(patientId.intValue());
+
+            return ResponseEntity.ok("Patient deleted");
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting patient");
+
         }
-    }
- 
-    @GetMapping("/fromArrayList")
-    public ResponseEntity<?> getAllPatientFromArrayList() {
-        try {
-            List<Patient> patients = patientServiceArrayList.getAllPatients();
-            if (patients == null || patients.isEmpty()) {
-                patients = seedFallback(); 
-            }
-            return ResponseEntity.ok(patients);
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(jsonError(ex.getMessage()));
-        }
-    }
- 
-    @PostMapping(value = "/toArrayList", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> addPatientToArrayList(@RequestBody Patient patient) {
-        try {
-            Integer id = patientServiceArrayList.addPatient(patient);
-            return ResponseEntity.status(HttpStatus.CREATED).body(id);
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(jsonError(ex.getMessage()));
-        }
+
     }
  
     @GetMapping("/fromArrayList/sorted")
-    public ResponseEntity<?> getAllPatientSortedByNameFromArrayList() {
+
+    public ResponseEntity<List<Patient>> getAllPatientSortedByName() {
+
         try {
-            List<Patient> patients = patientServiceArrayList.getAllPatientSortedByName();
-            if (patients == null || patients.isEmpty()) {
-                patients = seedFallback();
-                patients.sort(
-                    Comparator.comparing(
-                        (Patient p) -> {
-                            String nm = p.getFullName();
-                            return (nm == null) ? null : nm.trim();
-                        },
-                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
-                    ).thenComparingInt(Patient::getPatientId)
-                );
-            }
-            return ResponseEntity.ok(patients);
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(jsonError(ex.getMessage()));
+
+            return ResponseEntity.ok(service.getAllPatientSortedByName());
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
         }
+
     }
- 
-    private List<Patient> seedFallback() {
-        List<Patient> list = new ArrayList<>();
-        Patient p1 = new Patient(); p1.setPatientId(101); p1.setFullName("John");
-        Patient p2 = new Patient(); p2.setPatientId(102); p2.setFullName("Mike");
-        Patient p3 = new Patient(); p3.setPatientId(103); p3.setFullName("Zara");
-        list.add(p1); list.add(p2); list.add(p3);
-        return list;
-    }
- 
-    private String jsonError(String message) {
-        return "{\"error\":\"" + (message == null ? "Unexpected error" : message.replace("\"", "'")) + "\"}";
-    }
-    private String jsonMessage(String message) {
-        return "{\"message\":\"" + (message == null ? "" : message.replace("\"", "'")) + "\"}";
-    }
+
 }
  

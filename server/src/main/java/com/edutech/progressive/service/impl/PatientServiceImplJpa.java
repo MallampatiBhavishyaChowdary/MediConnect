@@ -1,66 +1,116 @@
-
- 
- 
- 
- 
- 
 package com.edutech.progressive.service.impl;
  
 import com.edutech.progressive.entity.Patient;
 
+import com.edutech.progressive.exception.PatientAlreadyExistsException;
+
+import com.edutech.progressive.exception.PatientNotFoundException;
+
+import com.edutech.progressive.repository.PatientRepository;
+
 import com.edutech.progressive.service.PatientService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
  
-import java.util.Collections;
+import java.util.Comparator;
 
 import java.util.List;
  
-@Service("patientServiceImplJpa")
+@Service
 
 public class PatientServiceImplJpa implements PatientService {
  
-    @Override
+    private final PatientRepository patientRepository;
+ 
+    
 
-    public List<Patient> getAllPatients() throws Exception {
+    @Autowired
 
-        return Collections.emptyList();
+    public PatientServiceImplJpa(PatientRepository patientRepository) {
+
+        this.patientRepository = patientRepository;
 
     }
  
     @Override
 
-    public Patient getPatientById(int patientId) throws Exception {
+    public List<Patient> getAllPatients() {
 
-        return null;
-
-    }
- 
-    @Override
-
-    public Integer addPatient(Patient patient) throws Exception {
-
-        return -1;
+        return patientRepository.findAll();
 
     }
  
     @Override
 
-    public void updatePatient(Patient patient) throws Exception {
+    public Patient getPatientById(int patientId) {
+
+        return patientRepository.findByPatientId(patientId)
+
+                .orElseThrow(() -> new PatientNotFoundException("Patient not found with id: " + patientId));
 
     }
  
     @Override
 
-    public void deletePatient(int patientId) throws Exception {
+    public Integer addPatient(Patient patient) {
+
+                if (patient.getEmail() != null) {
+
+            patientRepository.findByEmail(patient.getEmail()).ifPresent(existing -> {
+
+                throw new PatientAlreadyExistsException("Patient already exists with email: " + patient.getEmail());
+
+            });
+
+        }
+
+        Patient saved = patientRepository.save(patient);
+
+        return saved.getPatientId();
 
     }
  
     @Override
 
-    public List<Patient> getAllPatientSortedByName() throws Exception {
+    public List<Patient> getAllPatientSortedByName() {
 
-        return Collections.emptyList();
+        List<Patient> list = patientRepository.findAll();
+
+        list.sort(Comparator.comparing(p -> p.getFullName() == null ? "" : p.getFullName()));
+
+        return list;
+
+    }
+ 
+    @Override
+
+    public void updatePatient(Patient patient) {
+
+        patientRepository.findById(patient.getPatientId()).ifPresent(existing -> {
+
+            existing.setFullName(patient.getFullName());
+
+            existing.setDateOfBirth(patient.getDateOfBirth());
+
+            existing.setContactNumber(patient.getContactNumber());
+
+            existing.setEmail(patient.getEmail());
+
+            existing.setAddress(patient.getAddress());
+
+            patientRepository.save(existing);
+
+        });
+
+    }
+ 
+    @Override
+
+    public void deletePatient(int patientId) {
+
+        patientRepository.deleteById(patientId);
 
     }
 

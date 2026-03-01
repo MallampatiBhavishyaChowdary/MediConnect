@@ -1,5 +1,18 @@
 package com.edutech.progressive.repository;
+ 
+import com.edutech.progressive.entity.Doctor;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+ 
+import java.util.Optional;
+ 
+public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
 
-public interface DoctorRepository {
+    Optional<Doctor> findByDoctorId(Integer doctorId);
+ 
+    // Day-9: duplicate email check
+
+    Optional<Doctor> findByEmail(String email);
+
 }
+ 

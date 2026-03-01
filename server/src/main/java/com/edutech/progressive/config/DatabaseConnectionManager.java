@@ -46,6 +46,6 @@ public final class DatabaseConnectionManager {
             throw new SQLException("DB URL/username missing in application.properties");
         }
         return DriverManager.getConnection(url, user, pass);
-        // MySQL driver is auto-registered in modern versions; explicit Class.forName above is kept for safety.
+        
     }
 }

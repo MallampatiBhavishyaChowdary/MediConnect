@@ -1,4 +1,12 @@
 package com.edutech.progressive.exception;
+ 
+public class PatientAlreadyExistsException extends RuntimeException {
 
-public class PatientAlreadyExistsException {
+    public PatientAlreadyExistsException(String message) {
+
+        super(message);
+
+    }
+
 }
+ 
