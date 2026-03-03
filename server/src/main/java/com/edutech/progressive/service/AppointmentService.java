@@ -1,22 +1,23 @@
 package com.edutech.progressive.service;
-
+ 
 import com.edutech.progressive.entity.Appointment;
-
+ 
 import java.util.List;
-
+ 
 public interface AppointmentService {
+ 
     List<Appointment> getAllAppointments();
-
-    int createAppointment(Appointment appointment);
-
-    public void updateAppointment(Appointment appointment);
-
-    public Appointment getAppointmentById(int appointmentId);
-
-    public List<Appointment> getAppointmentByClinic(int clinicId);
-
-    public List<Appointment> getAppointmentByPatient(int patientId);
-
-    public List<Appointment> getAppointmentByStatus(String status);
-
+ 
+    Integer createAppointment(Appointment appointment);
+ 
+    void updateAppointment(Appointment appointment);
+ 
+    Appointment getAppointmentById(int appointmentId);
+ 
+    List<Appointment> getAppointmentsByClinicId(int clinicId);
+ 
+    List<Appointment> getAppointmentsByPatientId(int patientId);
+ 
+    List<Appointment> getAppointmentsByStatus(String status);
 }
+ 
